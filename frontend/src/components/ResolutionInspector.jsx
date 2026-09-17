@@ -4,7 +4,7 @@ import { ShieldCheck, BookOpen, AlertOctagon, CheckCircle, XCircle, FileText, Sl
 export default function ResolutionInspector({ resolution, policies }) {
   if (!resolution) {
     return (
-      <div className="w-84 bg-slate-900/60 rounded-xl border border-slate-800 p-4 shadow-md flex flex-col items-center justify-center text-center text-slate-400">
+      <div className="w-full h-full min-h-0 bg-slate-900/60 rounded-xl border border-slate-800 p-4 shadow-md flex flex-col items-center justify-center text-center text-slate-400">
         <Sliders className="w-8 h-8 text-slate-400 mb-2" />
         <h3 className="text-xs font-bold text-slate-300">Policy Resolution Inspector</h3>
         <p className="text-[11px] text-slate-400 mt-1 max-w-xs">
@@ -25,7 +25,7 @@ export default function ResolutionInspector({ resolution, policies }) {
   } = resolution;
 
   return (
-    <div className="w-84 bg-slate-900/60 rounded-xl border border-slate-800 p-4 shadow-md flex flex-col space-y-4 overflow-y-auto">
+    <div className="w-full h-full min-h-0 bg-slate-900/60 rounded-xl border border-slate-800 p-4 shadow-md flex flex-col space-y-4 overflow-y-auto">
       {/* Header */}
       <div className="border-b border-slate-800 pb-2.5 flex items-center justify-between">
         <div>

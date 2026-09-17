@@ -160,7 +160,7 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
+    <div className="h-screen w-full flex flex-col bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Top Header */}
       <Header
         onReset={handleReset}
@@ -169,9 +169,9 @@ export default function App() {
       />
 
       {/* Main 3-Pane Body */}
-      <main className="flex-1 flex overflow-hidden p-3 gap-3">
+      <main className="flex-1 flex min-h-0 overflow-hidden p-3 gap-3">
         {/* Left Pane: Customer Context & Quick Scenarios */}
-        <aside className="w-80 flex flex-col gap-3 overflow-y-auto shrink-0">
+        <aside className="w-80 flex flex-col gap-3 min-h-0 overflow-y-auto shrink-0">
           <CustomerCard
             customers={customers}
             selectedCustomer={selectedCustomer}
@@ -185,7 +185,7 @@ export default function App() {
         </aside>
 
         {/* Center Pane: Interactive Chat & Operations Console */}
-        <section className="flex-1 flex flex-col min-w-0 h-full">
+        <section className="flex-1 flex flex-col min-w-0 min-h-0 h-full">
           <ChatWindow
             messages={messages}
             onSendMessage={handleSendMessage}
@@ -196,7 +196,7 @@ export default function App() {
         </section>
 
         {/* Right Pane: Policy Resolution Inspector & Citations */}
-        <aside className="w-84 flex flex-col overflow-hidden shrink-0">
+        <aside className="w-80 flex flex-col min-h-0 overflow-hidden shrink-0">
           <ResolutionInspector
             resolution={resolution}
           />

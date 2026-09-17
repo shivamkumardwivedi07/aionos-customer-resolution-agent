@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, AlertTriangle, CheckCircle2, ShieldAlert, Zap, Clock } from 'lucide-react';
+import { Send, Bot, User, AlertTriangle, CheckCircle2, ShieldAlert, Zap, Clock, Sparkles, HelpCircle } from 'lucide-react';
 
 export default function ChatWindow({
   messages,
@@ -10,6 +10,7 @@ export default function ChatWindow({
 }) {
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -22,8 +23,13 @@ export default function ChatWindow({
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!inputText.trim() || isLoading) return;
-    onSendMessage(inputText);
+    onSendMessage(inputText.trim());
     setInputText('');
+  };
+
+  const handlePromptClick = (promptText) => {
+    if (isLoading) return;
+    onSendMessage(promptText);
   };
 
   const getSentimentBadge = (sentiment) => {
@@ -37,19 +43,81 @@ export default function ChatWindow({
     }
   };
 
+  // Dynamic suggested prompts based on the currently selected customer & flight situation
+  const getSuggestedQuestions = () => {
+    const custId = activeCustomer?.customer?.customer_id;
+    if (custId === 'CUST-001') {
+      // Priya Nair (Cancelled flight)
+      return [
+        "I want a full refund to my original payment method.",
+        "What are my free rebooking options within 24 hours?",
+        "Is my return flight from Goa to Delhi affected?",
+        "Can I get a complimentary business-class upgrade?"
+      ];
+    } else if (custId === 'CUST-002') {
+      // Arvind Kulkarni (4h delay)
+      return [
+        "Am I entitled to a meal voucher for my 4-hour delay?",
+        "Can I access the airport lounge while I wait?",
+        "Can you arrange a hotel room for my 4-hour delay?",
+        "Can the airline compensate me for my missed meeting?"
+      ];
+    } else if (custId === 'CUST-003') {
+      // Meher Kaur (6h delay)
+      return [
+        "Am I eligible for a hotel room for my 6-hour delay?",
+        "Can I get a full night's hotel stay instead of transit hours?",
+        "Can you waive the ₹2,000 fare difference for a higher flight?",
+        "What benefits do I get as a Platinum tier member?"
+      ];
+    }
+    return [
+      "What compensation am I entitled to?",
+      "Can I get a full refund?",
+      "Can I get free rebooking on the next flight?",
+      "Can you provide a meal voucher?"
+    ];
+  };
+
+  const suggestedQuestions = getSuggestedQuestions();
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-900/40 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+    <div className="flex-1 flex flex-col h-full min-h-0 bg-slate-900/50 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
       {/* Chat Messages Stream */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400">
-            <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-3">
-              <Bot className="w-6 h-6" />
+            <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 mb-3 shadow-lg shadow-sky-500/10">
+              <Bot className="w-7 h-7" />
             </div>
-            <h3 className="text-sm font-semibold text-slate-200">AIONOS Airline Disruption Agent</h3>
-            <p className="text-xs text-slate-400 max-w-sm mt-1">
-              Select a demo scenario on the left or type a customer message below to test deterministic policy grounding, action execution, and escalation handling.
+            <h3 className="text-sm font-bold text-slate-100">
+              Disruption Resolution Assistant Ready
+            </h3>
+            <p className="text-xs text-slate-400 max-w-md mt-1 mb-4">
+              Ask any question below, click a suggested inquiry chip, or select a scenario from the sidebar.
             </p>
+
+            <div className="max-w-md w-full bg-slate-950/70 border border-slate-800/80 rounded-xl p-3.5 text-left space-y-2">
+              <span className="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+                <HelpCircle className="w-3.5 h-3.5 text-sky-400" />
+                Suggested Questions to Ask Now:
+              </span>
+              <div className="space-y-1.5">
+                {suggestedQuestions.map((q, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handlePromptClick(q)}
+                    disabled={isLoading}
+                    className="w-full text-left text-xs bg-slate-900 hover:bg-sky-950/70 text-slate-300 hover:text-sky-300 border border-slate-800 hover:border-sky-500/40 rounded-lg px-3 py-2 transition-all flex items-center justify-between group"
+                  >
+                    <span>"{q}"</span>
+                    <span className="text-[10px] text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                      Ask →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           messages.map((msg, index) => {
@@ -71,7 +139,7 @@ export default function ChatWindow({
                 </div>
 
                 {/* Message Bubble Container */}
-                <div className={`max-w-[80%] space-y-2 ${isUser ? 'items-end' : 'items-start'}`}>
+                <div className={`max-w-[85%] space-y-2 ${isUser ? 'items-end' : 'items-start'}`}>
                   <div className="flex items-center gap-2 px-1">
                     <span className="text-[11px] font-semibold text-slate-400">
                       {isUser ? (msg.customer_name || 'Customer') : 'Resolution Agent'}
@@ -157,7 +225,7 @@ export default function ChatWindow({
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: '150ms' }} />
                 <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-bounce" style={{ animationDelay: '300ms' }} />
               </span>
-              <span>Evaluating policy rules and simulating operations...</span>
+              <span>Evaluating deterministic policy rules and simulating operations...</span>
             </div>
           </div>
         )}
@@ -165,16 +233,39 @@ export default function ChatWindow({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input Box */}
-      <div className="p-3 bg-slate-950/80 border-t border-slate-800">
+      {/* Suggested Quick Questions Bar */}
+      <div className="px-3 py-2 bg-slate-950/90 border-t border-slate-800/80 shrink-0">
+        <div className="text-[10px] uppercase font-semibold text-slate-400 mb-1.5 flex items-center gap-1">
+          <Sparkles className="w-3 h-3 text-amber-400" />
+          <span>Quick Suggestions (Click to send directly):</span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {suggestedQuestions.map((q, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handlePromptClick(q)}
+              disabled={isLoading}
+              className="text-[11px] bg-slate-900 hover:bg-sky-950 text-slate-300 hover:text-sky-200 border border-slate-800 hover:border-sky-500/50 rounded-md px-2.5 py-1 transition-all text-left"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Message Input Form */}
+      <div className="p-3 bg-slate-950 border-t border-slate-800 shrink-0">
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
           <input
+            ref={inputRef}
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder={`Message agent as ${activeCustomer?.customer?.name || 'Customer'}...`}
+            placeholder={`Type a message as ${activeCustomer?.customer?.name || 'Customer'} (Press Enter to send)...`}
             disabled={isLoading}
-            className="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all"
+            autoFocus
+            className="flex-1 bg-slate-900 border border-slate-700/80 rounded-lg px-3.5 py-2.5 text-xs text-slate-100 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all shadow-inner"
           />
           <button
             type="submit"
