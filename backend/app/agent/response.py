@@ -4,7 +4,7 @@ Generates concise, empathetic, policy-grounded customer messages.
 Never invents data; strictly reflects evaluated policy decisions and executed actions.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from app.models.customer import Customer
 from app.models.booking import Booking
 from app.models.policy import PolicyDecision, EscalationDecision
@@ -23,6 +23,9 @@ class ResponseGenerator:
         policy_decisions: List[PolicyDecision],
         actions_taken: List[ActionRecord],
         escalation: EscalationDecision,
+        intents: Optional[List[str]] = None,
+        entities: Optional[Dict[str, Any]] = None,
+        session_actions: Optional[List[ActionRecord]] = None,
         unaffected_return_noted: bool = False,
         privacy_violation_attempt: bool = False
     ) -> str:
@@ -32,6 +35,8 @@ class ResponseGenerator:
                 f"your own confirmed booking ({booking.booking_reference}). I cannot share details regarding any other passenger."
             )
 
+        intents_list = intents or []
+        entities_dict = entities or {}
         paragraphs: List[str] = []
 
         # 1. Empathy & Fact Acknowledgement
@@ -57,6 +62,8 @@ class ResponseGenerator:
 
         # 3. Policy & Action Explanations
         action_notes = []
+        hotel_explained = False
+
         for action in actions_taken:
             if action.action_type == "REFUND_REQUESTED":
                 action_notes.append(
@@ -73,6 +80,7 @@ class ResponseGenerator:
                     "I have arranged transit day-room hotel accommodation. Per Section 5.2, this accommodation covers "
                     "only the qualifying delayed-hours portion up to departure; full-night stays are not eligible under standard policy."
                 )
+                hotel_explained = True
             elif action.action_type == "REBOOKING_REQUESTED":
                 action_notes.append(
                     "I have submitted a free rebooking request for the next available flight within 24 hours. "
@@ -82,13 +90,34 @@ class ResponseGenerator:
         if action_notes:
             paragraphs.extend(action_notes)
 
-        # 4. Clarifications on Ineligible Requests
-        for dec in policy_decisions:
-            if "NO_HOTEL_ACCOMMODATION" in dec.restrictions:
+        # 4. Direct Hotel Accommodation Inquiries (e.g. Meher 6h delay vs Arvind 4h delay)
+        hotel_inquired = (
+            "HOTEL_REQUEST" in intents_list
+            or entities_dict.get("wants_full_night_hotel", False)
+            or any("hotel" in str(dec.restrictions).lower() for dec in policy_decisions if "NO_HOTEL_ACCOMMODATION" in dec.restrictions)
+        )
+
+        if hotel_inquired and not hotel_explained:
+            if booking.delay_hours > 5.0:
+                if entities_dict.get("wants_full_night_hotel", False):
+                    paragraphs.append(
+                        f"Regarding hotel accommodation: Under Service Rules Section 5.2, for delays exceeding 5 hours (such as your {booking.delay_hours:.1f}-hour delay), "
+                        f"you qualify for transit day-room hotel accommodation covering the delayed-hours window until departure ({booking.current_departure}). "
+                        "Please note that a full night's hotel stay is strictly not eligible under airline policy."
+                    )
+                else:
+                    paragraphs.append(
+                        f"Regarding hotel accommodation: Under Service Rules Section 5.2, because your flight {booking.flight_number} is delayed by {booking.delay_hours:.1f} hours "
+                        f"(exceeding the 5-hour threshold), you qualify for transit day-room hotel accommodation covering the delayed-hours window until departure at {booking.current_departure}."
+                    )
+            else:
                 paragraphs.append(
                     f"Regarding hotel accommodation: Under Service Rules Section 5.2, hotel assistance is only provided "
                     f"for delays exceeding 5 hours. Because your delay is {booking.delay_hours:.1f} hours, hotel accommodation cannot be authorized."
                 )
+
+        # 5. Fare Difference Inquiries
+        for dec in policy_decisions:
             if not dec.eligible:
                 if "FARE_DIFFERENCE_EXCEEDS_AGENT_LIMIT_1500" in (dec.escalation_reason or ""):
                     fare_val = dec.details.get("fare_diff_inr", 2000)
@@ -97,7 +126,20 @@ class ResponseGenerator:
                         "Under Service Rules Section 5.4, any fare difference waiver exceeding ₹1,500 requires supervisor approval."
                     )
 
-        # 5. Escalation & Next Steps
+        # 6. Loyalty Tier Benefits Inquiries
+        loyalty_inquired = (
+            "UPGRADE_REQUEST" in intents_list
+            or entities_dict.get("requests_cabin_upgrade", False)
+            or any("loyalty" in str(i).lower() for i in intents_list)
+        )
+        if loyalty_inquired and not any("cabin upgrade" in p.lower() for p in paragraphs):
+            paragraphs.append(
+                f"Regarding your {customer.loyalty_tier} loyalty tier status: Under Service Rules Section 5.5, {customer.loyalty_tier} members "
+                "receive priority rebooking and first access to next-available seats during disruptions. However, loyalty status does not "
+                "grant complimentary cabin upgrades, fee waivers, or additional monetary compensation beyond standard disruption policy."
+            )
+
+        # 7. Escalation & Next Steps
         if escalation.escalate:
             ticket_ref = ""
             for action in actions_taken:
@@ -125,7 +167,7 @@ class ResponseGenerator:
                     f"I have escalated this matter to a human specialist{ticket_ref} to provide further assistance."
                 )
 
-        # 6. Prompting when customer choice is needed
+        # 8. Prompting when customer choice is needed
         cancellation_dec = next((d for d in policy_decisions if d.policy_id == "POL-5.1"), None)
         if cancellation_dec and "CUSTOMER_CHOOSES_OPTION" in cancellation_dec.restrictions and not actions_taken:
             paragraphs.append(

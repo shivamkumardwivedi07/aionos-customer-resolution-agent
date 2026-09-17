@@ -86,7 +86,7 @@ class IntentExtractor:
             entities["requests_cabin_upgrade"] = True
 
         # 9. Intent: Hotel Accommodation
-        if any(w in t for w in ["hotel", "room", "accommodation", "stay"]):
+        if any(w in t for w in ["hotel", "room", "rooms", "accommodation", "accomodation", "stay"]):
             intents.add("HOTEL_REQUEST")
             if any(w in t for w in ["full night", "whole night", "overnight", "night's stay"]):
                 entities["wants_full_night_hotel"] = True
@@ -126,7 +126,7 @@ class IntentExtractor:
         elif "arvind" in t:
             entities["customer_name"] = "Arvind Kulkarni"
             entities["pnr"] = "TR1190B"
-        elif "meher" in t:
+        elif "meher" in t or "mehar" in t:
             entities["customer_name"] = "Meher Kaur"
             entities["pnr"] = "WL7742"
 

@@ -243,6 +243,9 @@ class AgentOrchestrator:
             policy_decisions=policy_decisions,
             actions_taken=actions_taken,
             escalation=escalation,
+            intents=intents,
+            entities=entities,
+            session_actions=session.executed_actions,
             unaffected_return_noted=(booking.return_flight is not None),
             privacy_violation_attempt=privacy_violation
         )
