@@ -1,0 +1,79 @@
+[
+  {
+    "policy_id": "POL-5.1",
+    "section": "5.1",
+    "name": "Cancellation Rebooking Rule",
+    "description": "If a flight is cancelled by the airline, customer is entitled to free rebooking on the next available flight within 24 hours OR a full refund. Customer chooses. The supplied data does not provide actual alternative flight schedules or availability.",
+    "allowed_actions": ["FREE_REBOOKING_24H", "FULL_REFUND"],
+    "restrictions": [
+      "NO_FABRICATED_FLIGHT_INVENTORY",
+      "CUSTOMER_CHOOSES_REBOOK_OR_REFUND"
+    ],
+    "citation": "Service Rules Section 5.1: Cancellation Rebooking Rule"
+  },
+  {
+    "policy_id": "POL-5.2",
+    "section": "5.2",
+    "name": "Delay Compensation Rule",
+    "description": "Delay under 3 hours: ₹500 meal voucher. Delay more than 3 hours: meal voucher + lounge access. Delay more than 5 hours: meal voucher + lounge access + hotel accommodation for delayed hours only (NOT full night).",
+    "thresholds": {
+      "under_3_hours": ["MEAL_VOUCHER_500"],
+      "over_3_hours": ["MEAL_VOUCHER", "LOUNGE_ACCESS"],
+      "over_5_hours": ["MEAL_VOUCHER", "LOUNGE_ACCESS", "HOTEL_DELAYED_HOURS_ONLY"]
+    },
+    "restrictions": [
+      "NO_HOTEL_FOR_DELAY_UNDER_OR_EQUAL_5_HOURS",
+      "HOTEL_COVERS_ONLY_DELAYED_HOURS_NOT_FULL_NIGHT"
+    ],
+    "citation": "Service Rules Section 5.2: Delay Compensation Rule"
+  },
+  {
+    "policy_id": "POL-5.3",
+    "section": "5.3",
+    "name": "Refund Processing Rule",
+    "description": "Refunds for airline-caused cancellations are processed in full within 7 business days, issued ONLY to the original payment method. Do not promise an alternative payment method or cash payouts.",
+    "allowed_actions": ["FULL_REFUND"],
+    "restrictions": [
+      "ORIGINAL_PAYMENT_METHOD_ONLY",
+      "PROCESSED_WITHIN_7_BUSINESS_DAYS",
+      "NO_CASH_PAYOUT"
+    ],
+    "citation": "Service Rules Section 5.3: Refund Processing Rule"
+  },
+  {
+    "policy_id": "POL-5.4",
+    "section": "5.4",
+    "name": "Fare Difference Rule",
+    "description": "If a customer voluntarily chooses to rebook on a higher-fare flight, customer must pay the fare difference. Agents cannot waive fare differences above ₹1,500 without supervisor approval. Fare difference <= ₹1,500: agent may handle. Fare difference > ₹1,500: supervisor approval required.",
+    "agent_waiver_limit_inr": 1500,
+    "escalation_conditions": ["FARE_DIFFERENCE_EXCEEDS_1500"],
+    "citation": "Service Rules Section 5.4: Fare Difference Rule"
+  },
+  {
+    "policy_id": "POL-5.5",
+    "section": "5.5",
+    "name": "Loyalty Tier Rule",
+    "description": "Gold and Platinum customers receive priority rebooking and first access to next-available seats, but NO additional compensation beyond standard policy. No free upgrades or extra payouts based on tier.",
+    "benefits": ["PRIORITY_REBOOKING", "FIRST_ACCESS_SEATS"],
+    "restrictions": [
+      "NO_ADDITIONAL_COMPENSATION",
+      "NO_FREE_CABIN_UPGRADE_ENTITLEMENT"
+    ],
+    "citation": "Service Rules Section 5.5: Loyalty Tier Rule"
+  },
+  {
+    "policy_id": "POL-7.0",
+    "section": "7.0",
+    "name": "Prohibited Actions & Mandatory Escalation",
+    "description": "The agent must escalate to human support when: (1) customer requests compensation beyond policy, (2) fare difference waiver > ₹1,500, (3) exception for non-airline disruption, (4) threat of legal action, (5) threat of formal complaint, (6) refund to different payment method.",
+    "mandatory_escalation_triggers": [
+      "COMPENSATION_EXCEEDS_POLICY",
+      "FARE_DIFF_WAIVER_EXCEEDS_1500",
+      "NON_AIRLINE_DISRUPTION_EXCEPTION",
+      "LEGAL_ACTION_THREAT",
+      "FORMAL_COMPLAINT_THREAT",
+      "DIFFERENT_PAYMENT_METHOD_REQUEST"
+    ],
+    "citation": "Service Rules Section 7.0: Prohibited Actions"
+  }
+]
